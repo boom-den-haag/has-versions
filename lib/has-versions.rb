@@ -37,6 +37,7 @@ module VersionIncludes
       
       before_create 'before_create_initialization'
       after_create 'after_create_initialization'
+      before_save :ensure_uid_is_present, :ensure_state_is_present
 
     end
   end
@@ -51,19 +52,7 @@ module VersionIncludes
     self.class.where(:uid=>uid).where(:state=>'publication').all.first
   end
 
-
   
-  def before_create_initialization
-    self.state = 'draft'
-    self.version = nil
-  end
-
-  def after_create_initialization
-    if self.uid.nil?
-      self.uid = id
-      self.save
-    end
-  end
   
   def draft!
     self.state = 'draft'
@@ -128,4 +117,27 @@ module VersionIncludes
   def commitable?
     draft? && (self.created_at.to_i!=self.updated_at.to_i)
   end 
+  
+  protected
+  
+  def ensure_uid_is_present
+    self.uid = self.id if self.uid.blank? && !self.new_record?
+  end
+  
+  def ensure_state_is_present
+    self.state = 'draft' if self.state.blank?
+  end
+  
+  def before_create_initialization
+    self.state = 'draft'
+    self.version = nil
+  end
+
+  def after_create_initialization
+    if self.uid.nil?
+      self.uid = id
+      self.save
+    end
+  end
+  
 end
