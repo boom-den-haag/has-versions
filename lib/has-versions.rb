@@ -9,7 +9,7 @@ module VersionExtensions
     content_with_right_version = []
     content_present_in_this_version = self.where("version <= '#{version}'").group(:uid)
     content_present_in_this_version.each do |c|
-      content_with_right_version << self.where(:uid =>c.uid).where("version <= '#{version}'").order('version DESC').first
+      content_with_right_version << self.where(:uid => c.uid).where("version <= '#{version}'").order('version DESC').first
     end
     return content_with_right_version
   end
@@ -51,8 +51,6 @@ module VersionIncludes
   def publication
     self.class.where(:uid=>uid).where(:state=>'publication').all.first
   end
-
-  
   
   def draft!
     self.state = 'draft'
@@ -95,11 +93,13 @@ module VersionIncludes
   end
   
   def create_draft!
-    draft = self.clone
-    draft.state = 'draft'
-    draft.created_at = Time.now
-    draft.updated_at = Time.now
-    draft.save
+    unless self.draft.present?
+      draft = self.clone
+      draft.state = 'draft'
+      draft.created_at = Time.now
+      draft.updated_at = Time.now
+      draft.save
+    end
   end
 
   def draft?
