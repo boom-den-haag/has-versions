@@ -37,7 +37,7 @@ module VersionIncludes
       
       before_create 'before_create_initialization'
       after_create 'after_create_initialization'
-      before_save :ensure_uid_is_present, :ensure_state_is_present
+      before_save :ensure_uid_is_present, :ensure_state_is_present, :set_commitable_if_changed
 
     end
   end
@@ -64,7 +64,7 @@ module VersionIncludes
       publication.historize! if publication
       self.state = 'publication'
       self.version = version
-      self.commitable = 0
+      self.commitable = false
       self.save
       create_draft!
     end
@@ -85,7 +85,7 @@ module VersionIncludes
   end
 
   def commitable!
-    self.commitable = 1
+    self.commitable = true
     self.save
   end  
  
@@ -102,7 +102,7 @@ module VersionIncludes
       draft.state = 'draft'
       draft.created_at = Time.now
       draft.updated_at = Time.now
-      draft.commitable = 0
+      draft.commitable = false
       
       draft.save
     end
@@ -121,7 +121,7 @@ module VersionIncludes
   end  
   
   def commitable?
-    draft? && commitable==1
+    draft? && commitable
   end 
   
   protected
@@ -135,13 +135,17 @@ module VersionIncludes
   end
   
   def set_commitable_if_changed
-    self.commitable = 1 if self.changed?
+    unless new_record?
+      self.commitable = true if !self.commitable_changed?
+    end
+    return true
   end
   
   def before_create_initialization
     self.state = 'draft'
     self.version = nil
-    self.commitable = 0
+    self.commitable = false
+    return true
   end
 
   def after_create_initialization
