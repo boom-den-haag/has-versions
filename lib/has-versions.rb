@@ -134,6 +134,10 @@ module VersionIncludes
     self.state = 'draft' if self.state.blank?
   end
   
+  def set_commitable_if_changed
+    self.commitable = 1 if self.changed?
+  end
+  
   def before_create_initialization
     self.state = 'draft'
     self.version = nil
