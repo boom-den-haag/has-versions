@@ -15,7 +15,7 @@ module VersionExtensions
   end
 
   def commitable
-    draft.where("created_at!=updated_at")
+    draft.where("commitable=1")
   end  
   
 end
@@ -64,6 +64,7 @@ module VersionIncludes
       publication.historize! if publication
       self.state = 'publication'
       self.version = version
+      self.commitable = 0
       self.save
       create_draft!
     end
@@ -83,7 +84,10 @@ module VersionIncludes
     end
   end
 
-  
+  def commitable!
+    self.commitable = 1
+    self.save
+  end  
  
   def historize!
     if publication?
@@ -98,6 +102,8 @@ module VersionIncludes
       draft.state = 'draft'
       draft.created_at = Time.now
       draft.updated_at = Time.now
+      draft.commitable = 0
+      
       draft.save
     end
   end
@@ -115,7 +121,7 @@ module VersionIncludes
   end  
   
   def commitable?
-    draft? && (self.created_at.to_i!=self.updated_at.to_i)
+    draft? && commitable==1
   end 
   
   protected
@@ -131,6 +137,7 @@ module VersionIncludes
   def before_create_initialization
     self.state = 'draft'
     self.version = nil
+    self.commitable = 0
   end
 
   def after_create_initialization
