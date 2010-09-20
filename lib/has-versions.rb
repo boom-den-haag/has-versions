@@ -45,9 +45,11 @@ module VersionIncludes
   def histories
     self.class.where(:uid=>uid).where(:state=>'history').order('version DESC').all
   end
+
   def draft
     self.class.where(:uid=>uid).where(:state=>'draft').all.first
   end  
+
   def publication
     self.class.where(:uid=>uid).where(:state=>'publication').all.first
   end
@@ -59,14 +61,22 @@ module VersionIncludes
   end
 
   def publish!(version)
+
+    return nil unless draft? || deleted?
+    return nil if publication && publication.version >= version
+
+    publication.historize! if publication
+
+    self.version = version
+    self.commitable = false
+
     if draft?
-      return nil if publication && publication.version >= version
-      publication.historize! if publication
       self.state = 'publication'
-      self.version = version
-      self.commitable = false
       self.save
       create_draft!
+    elsif deleted?
+      self.state = 'history'
+      self.save
     end
   end
 
@@ -116,6 +126,10 @@ module VersionIncludes
     state.eql?('publication')
   end
 
+  def deleted?
+    state.eql?('deleted')
+  end
+  
   def history?
     state.eql?('history')
   end  
