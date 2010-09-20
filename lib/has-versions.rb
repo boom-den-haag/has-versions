@@ -76,7 +76,7 @@ module VersionIncludes
       create_draft!
     elsif deleted?
       self.state = 'history'
-      self.savehistory
+      self.save
     end
   end
 
