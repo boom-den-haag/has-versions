@@ -76,7 +76,7 @@ module VersionIncludes
       create_draft!
     elsif deleted?
       self.state = 'history'
-      self.save
+      self.savehistory
     end
   end
 
@@ -102,6 +102,13 @@ module VersionIncludes
   def historize!
     if publication?
       self.state = 'history'
+      self.save
+    end
+  end
+  
+  def deleted!
+    if draft?
+      self.state = 'deleted'
       self.save
     end
   end
