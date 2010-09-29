@@ -150,6 +150,11 @@ module VersionIncludes
     draft? && commitable
   end
   
+  def build_a_slug
+    return unless publication?
+    super
+  end
+  
   protected
   
   def ensure_uid_is_present
