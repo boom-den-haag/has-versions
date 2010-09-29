@@ -48,7 +48,7 @@ module VersionIncludes
 
   def draft
     self.class.where(:uid=>uid).where(:state=>'draft').all.first
-  end  
+  end
 
   def publication
     self.class.where(:uid=>uid).where(:state=>'publication').all.first
@@ -65,6 +65,9 @@ module VersionIncludes
     return nil unless draft? || deleted?
     return nil if publication && publication.version >= version
 
+    if self.is_a?(FriendlyId::Slugged::Model) && publication
+      Slug.update_all({:sluggable_id => self.id}, {:sluggable_id => publication.id, :sluggable_type => publication.class.name})
+    end
     publication.historize! if publication
 
     self.version = version
@@ -102,7 +105,6 @@ module VersionIncludes
   def historize!
     if publication?
       self.state = 'history'
-      remove_slugs
       self.cached_slug = nil if self.respond_to?(:cached_slug=)
       self.save
     end
@@ -142,11 +144,11 @@ module VersionIncludes
   
   def history?
     state.eql?('history')
-  end  
+  end
   
   def commitable?
     draft? && commitable
-  end 
+  end
   
   protected
   
@@ -178,10 +180,5 @@ module VersionIncludes
       self.save
     end
   end
-  
-  def remove_slugs
-    self.slugs.destroy_all if self.is_a?(FriendlyId::Slugged::Model)
-  end
-  
   
 end
