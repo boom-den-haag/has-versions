@@ -102,6 +102,8 @@ module VersionIncludes
   def historize!
     if publication?
       self.state = 'history'
+      remove_slugs
+      self.cached_slug = nil if self.respond_to?(:cached_slug=)
       self.save
     end
   end
@@ -120,6 +122,7 @@ module VersionIncludes
       draft.created_at = Time.now
       draft.updated_at = Time.now
       draft.commitable = false
+      draft.cached_slug = nil if draft.respond_to?(:cached_slug=)
       
       draft.save
     end
@@ -175,5 +178,10 @@ module VersionIncludes
       self.save
     end
   end
+  
+  def remove_slugs
+    self.slugs.destroy_all if self.is_a?(FriendlyId::Slugged::Model)
+  end
+  
   
 end
