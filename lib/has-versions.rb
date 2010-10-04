@@ -36,7 +36,6 @@ module VersionIncludes
       scope :with_version, lambda {|version| self.where("version <= '#{version}'") }
       
       before_create 'before_create_initialization'
-      after_create 'after_create_initialization'
       before_save :ensure_uid_is_present, :ensure_state_is_present, :set_commitable_if_changed
 
     end
@@ -179,11 +178,6 @@ module VersionIncludes
     return true
   end
 
-  def after_create_initialization
-    if self.uid.nil?
-      self.uid = id
-      self.save
-    end
-  end
+
   
 end
