@@ -175,7 +175,7 @@ module VersionIncludes
   def before_create_initialization
     self.state = 'draft'
     self.version = nil
-    self.commitable = false
+    self.commitable = ture
     return true
   end
 
