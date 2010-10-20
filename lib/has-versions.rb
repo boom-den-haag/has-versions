@@ -33,6 +33,7 @@ module VersionIncludes
       scope :uid, lambda {|uid| where(:uid =>uid) }
       scope :publication, where(:state=>'publication')
       scope :draft, where(:state=>'draft')
+      scope :history, where(:state=>'history')
       scope :with_version, lambda {|version| self.where("version <= '#{version}'") }
       
       before_create 'before_create_initialization'
