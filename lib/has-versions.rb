@@ -15,7 +15,7 @@ module VersionExtensions
   end
 
   def commitable
-    draft.where("commitable=1")
+    where("commitable=1 AND (state='draft' OR state='deleted')")
   end  
   
 end
@@ -148,7 +148,7 @@ module VersionIncludes
   end
   
   def commitable?
-    draft? && commitable
+    (draft? || deleted?)  && commitable
   end
   
   def build_a_slug
