@@ -62,7 +62,7 @@ module VersionIncludes
   end
 
   def publish!(version)
-
+    return nil unless commitable?
     return nil unless draft? || deleted?
     return nil if publication && publication.version >= version
 
