@@ -66,9 +66,6 @@ module VersionIncludes
     return nil unless draft? || deleted?
     return nil if publication && publication.version >= version
 
-    if self.is_a?(FriendlyId::Slugged::Model) && publication
-      Slug.update_all({:sluggable_id => self.id}, {:sluggable_id => publication.id, :sluggable_type => publication.class.name})
-    end
     publication.historize! if publication
 
     self.version = version
@@ -106,7 +103,7 @@ module VersionIncludes
   def historize!
     if publication?
       self.state = 'history'
-      self.cached_slug = nil if self.respond_to?(:cached_slug=)
+      slugs.destroy_all if self.is_a?(FriendlyId::Slugged::Model) and slugs.any?
       self.save
     end
   end
