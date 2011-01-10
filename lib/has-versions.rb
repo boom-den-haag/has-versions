@@ -29,7 +29,7 @@ module VersionIncludes
       # has_one :draft, :class_name => self.name, :primary_key => :uid, :foreign_key => :uid, :conditions => {:state => 'draft' }
     
       # has_one :publication, :class_name => self.name, :primary_key => :uid, :foreign_key => :uid, :conditions => {:state => 'publication' }
-    
+      scope :uid, lambda {|uid| where(:uid =>uid) }
       scope :with_uid, lambda {|uid| where(:uid =>uid) }
       scope :publication, where(:state=>'publication')
       scope :draft, where(:state=>'draft')
