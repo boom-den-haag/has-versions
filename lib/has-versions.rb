@@ -73,6 +73,7 @@ module VersionIncludes
 
     if draft?
       self.state = 'publication'
+      slugs.destroy_all if self.is_a?(FriendlyId::Slugged::Model) and slugs.any?
       self.save
       create_draft!
     elsif deleted?
