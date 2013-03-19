@@ -118,7 +118,7 @@ module VersionIncludes
   
   def create_draft!
     unless self.draft.present?
-      draft = self.clone
+      draft = self.dup
       draft.state = 'draft'
       draft.created_at = Time.now
       draft.updated_at = Time.now
