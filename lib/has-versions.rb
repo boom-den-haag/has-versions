@@ -57,7 +57,7 @@ module VersionIncludes
   def publish!(version)
     return nil unless commitable?
     return nil unless draft? || deleted?
-    return nil if publication && publication.version >= version
+    return nil if publication && publication.version.to_i >= version
 
     publication.historize! if publication
 
