@@ -5,60 +5,53 @@ end
 
 module VersionExtensions
 
-  def snapshot( version )
+  def snapshot(version)
     content_with_right_version = []
     content_present_in_this_version = self.where("version <= '#{version}'").group(:uid)
     content_present_in_this_version.each do |c|
-      content_with_right_version << self.where(:uid => c.uid).where("version <= '#{version}'").order('version DESC').first
+      content_with_right_version << self.where(uid: c.uid).where("version <= '#{version}'").order('version DESC').first
     end
-    return content_with_right_version
+    content_with_right_version
   end
 
   def commitable
     where("commitable=1 AND (state='draft' OR state='deleted')")
-  end  
-  
+  end
+
 end
 
 module VersionIncludes
   def self.included(base)
     base.class_eval do
-      
-      # has_many :histories, :class_name => self.name, :primary_key => :uid, :foreign_key => :uid, :conditions => {:state => 'history' }
-    
-      # has_one :draft, :class_name => self.name, :primary_key => :uid, :foreign_key => :uid, :conditions => {:state => 'draft' }
-    
-      # has_one :publication, :class_name => self.name, :primary_key => :uid, :foreign_key => :uid, :conditions => {:state => 'publication' }
       scope :uid, lambda { where("uid>0") }
-      scope :with_uid, lambda {|uid| where(:uid =>uid) }
-      scope :publication, where(:state=>'publication')
-      scope :draft, where(:state=>'draft')
-      scope :history, where(:state=>'history')
+      scope :with_uid, lambda { |uid| where(uid: uid) }
+      scope :publication, where(state: 'publication')
+      scope :draft, where(state: 'draft')
+      scope :history, where(state: 'history')
       scope :with_version, lambda {|version| self.where("version <= '#{version}'") }
-      
+
       before_create 'before_create_initialization'
       after_create 'after_create_initialization'
       before_save :ensure_uid_is_present, :ensure_state_is_present, :set_commitable_if_changed
-
     end
   end
 
   def histories
-    self.class.where(:uid=>uid).where(:state=>'history').order('version DESC').all
+    self.class.where(uid: uid).where(state: 'history').order('version DESC').all
   end
 
   def draft
-    self.class.where(:uid=>uid).where(:state=>'draft').all.first
+    self.class.where(uid: uid).where(state: 'draft').all.first
   end
 
   def publication
-    self.class.where(:uid=>uid).where(:state=>'publication').all.first
+    self.class.where(uid: uid).where(state: 'publication').all.first
   end
-  
+
   def draft!
     self.state = 'draft'
     self.version = nil
-    self.save
+    save
   end
 
   def publish!(version)
@@ -74,11 +67,11 @@ module VersionIncludes
     if draft?
       self.state = 'publication'
       slugs.destroy_all if self.is_a?(FriendlyId::Slugged::Model) and slugs.any?
-      self.save
+      save
       create_draft!
     elsif deleted?
       self.state = 'history'
-      self.save
+      save
     end
   end
 
@@ -98,24 +91,24 @@ module VersionIncludes
 
   def commitable!
     self.commitable = true
-    self.save
-  end  
- 
+    save
+  end
+
   def historize!
     if publication?
       self.state = 'history'
       slugs.destroy_all if self.is_a?(FriendlyId::Slugged::Model) and slugs.any?
-      self.save
+      save
     end
   end
-  
+
   def deleted!
     if draft?
       self.state = 'deleted'
-      self.save
+      save
     end
   end
-  
+
   def create_draft!
     unless self.draft.present?
       draft = self.dup
@@ -124,7 +117,7 @@ module VersionIncludes
       draft.updated_at = Time.now
       draft.commitable = false
       draft.cached_slug = nil if draft.respond_to?(:cached_slug=)
-      
+
       draft.save
     end
   end
@@ -132,7 +125,7 @@ module VersionIncludes
   def draft?
     state.eql?('draft')
   end
-  
+
   def publication?
     state.eql?('publication')
   end
@@ -140,37 +133,37 @@ module VersionIncludes
   def deleted?
     state.eql?('deleted')
   end
-  
+
   def history?
     state.eql?('history')
   end
-  
+
   def commitable?
     (draft? || deleted?)  && commitable
   end
-  
+
   def build_a_slug
     return unless publication?
     super
   end
-  
+
   protected
-  
+
   def ensure_uid_is_present
     self.uid = self.id if self.uid.blank? && !self.new_record?
   end
-  
+
   def ensure_state_is_present
     self.state = 'draft' if self.state.blank?
   end
-  
+
   def set_commitable_if_changed
     unless new_record?
       self.commitable = true if !self.commitable_changed?
     end
     return true
   end
-  
+
   def before_create_initialization
     self.state = 'draft'
     self.version = nil
@@ -179,10 +172,10 @@ module VersionIncludes
   end
 
   def after_create_initialization
-    if self.uid.blank?
-      self.uid = self.id
+    if uid.blank?
+      self.uid = id
       save
     end
   end
-  
+
 end
